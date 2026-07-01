@@ -3,8 +3,8 @@
 #include <stdbool.h>
 
 #define WINDOW_W 800
-#define WINDOW_Y 800
-#define TICK_RATE 60 
+#define WINDOW_H 800
+#define TICK_RATE 30 
 #define MS_PER_TICK (1000.0f / TICK_RATE)
 
 typedef struct {
@@ -25,14 +25,14 @@ bool init_app(App *a) {
     return false;
   }
 
-  SDL_Window *win = SDL_CreateWindow("Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_W, WINDOW_Y, SDL_WINDOW_SHOWN);
+  SDL_Window *win = SDL_CreateWindow("Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_W, WINDOW_H, SDL_WINDOW_SHOWN);
   if(!win){
     fprintf(stderr, "SDL Window error: %s\n", SDL_GetError());
     SDL_Quit();
     return false;
   }
 
-  SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
+  SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
   if(!ren){
     fprintf(stderr, "SDL Renderer error: %s\n", SDL_GetError());
     SDL_DestroyWindow(win);
@@ -52,7 +52,7 @@ void render(SDL_Renderer *ren, Player *player){
   SDL_RenderClear(ren);
 
   SDL_SetRenderDrawColor(ren, 123, 123, 123, 255);
-  SDL_Rect rect = {(int)player->x, (int)player->y, (int)player->h, (int)player->w};
+  SDL_Rect rect = {(int)player->x, (int)player->y, (int)player->w, (int)player->h};
   SDL_RenderFillRect(ren, &rect);
 
   SDL_RenderPresent(ren);
@@ -78,13 +78,14 @@ int main(){
   Player player;
   player.x = x, player.y = y, player.h = 80, player.w = 80, player.speed = speed;
 
-
   Uint32 last = SDL_GetTicks();
-  Uint32 accumulator = 0; 
+  double accumulator = 0.0;
 
   while(app.running){
     Uint32 now = SDL_GetTicks();
-    accumulator += now - last;
+    Uint32 frame = now - last;
+    if(frame > 250) frame = 250; // clamp to avoid spiral of death on stalls
+    accumulator += frame;
     last = now;
 
     while(SDL_PollEvent(&event)){

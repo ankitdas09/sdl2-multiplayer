@@ -8,6 +8,8 @@
 #define MAX_CLIENT 4
 #define PORT 7777
 #define TIMEOUT_SEC 5
+#define TICK_RATE 60
+#define TICK_US (1000000 / TICK_RATE)
 
 typedef struct {
   struct sockaddr_in addr;

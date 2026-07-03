@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <arpa/inet.h>
 #include <time.h>
+#include "game.h"
 
 #define MAX_CLIENT 4
 #define PORT 7777
@@ -19,6 +20,6 @@ typedef struct {
 } NetClient;
 
 int net_init(void);
-void net_run(int sock);
+void net_run(int sock, GameState *gs);
 
 #endif

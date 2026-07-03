@@ -47,7 +47,7 @@ long long now_us(){
   return ts.tv_sec * 1000000LL + ts.tv_nsec / 1000;
 }
 
-void net_run(int sock){ 
+void net_run(int sock, GameState *gs){ 
   struct sockaddr_in client;
   socklen_t client_len = sizeof(client);
   
@@ -85,6 +85,7 @@ void net_run(int sock){
     if(_now_us >= next_tick_time){
       printf("Tick %u\n", tick);
       next_tick_time += TICK_US;
+      game_tick(gs);
       tick++;
     }
   }

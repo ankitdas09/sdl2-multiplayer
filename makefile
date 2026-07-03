@@ -8,7 +8,7 @@ client:
 	$(CC) client.c -o client $(CFLAGS) $(LIBS)
 
 server:
-	$(CC) server.c net.c -o server $(SERVER_CFLAGS)
+	$(CC) server.c net.c game.c -o server $(SERVER_CFLAGS)
 
 clean:
 	rm -f server client

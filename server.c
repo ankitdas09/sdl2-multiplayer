@@ -1,5 +1,6 @@
 #include "net.h"
 #include <stdio.h>
+#include "game.h"
 
 int main() {
   int sock = net_init();
@@ -8,7 +9,10 @@ int main() {
     return 1;
   }
 
-  net_run(sock);
+  GameState gs;
+  game_init(&gs);
+
+  net_run(sock, &gs);
 
   return 0;
 }

@@ -9,6 +9,9 @@
 #define MAX_BOMBS 4
 #define MAP_H 50
 #define MAP_W 50
+#define MAX_PLAYER_HEALTH 100
+#define CRATE_MASS_KG 5
+
 
 typedef struct {
   uint8_t id;
@@ -40,5 +43,17 @@ typedef struct {
   uint32_t tick;
   uint8_t map[MAP_H][MAP_W];
 } GameState;
+
+#include "protocol.h"
+
+void game_init(GameState *gs);
+
+void game_process_input(GameState *gs, uint8_t player_id, ClientInput *input);
+
+void game_tick(GameState *gs);
+
+void game_player_leave(GameState *gs, uint8_t player_id);
+
+void game_player_join(GameState *gs, uint8_t player_id);
 
 #endif

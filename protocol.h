@@ -8,7 +8,6 @@
 #define BTN_PLACE_BOMB  (1 << 0)
 #define BTN_KICK_CRATE  (1 << 1)
 #define BTN_TAUNT       (1 << 2)
-#include "game.h"
 
 typedef struct __attribute__((packed)) {
   uint8_t type; 
@@ -33,6 +32,8 @@ typedef struct __attribute__((packed)) {
   float x, y;
   bool is_alive;
 } ServerCrate;
+
+#include "game.h"
 
 typedef struct __attribute__((packed)) {
   uint8_t type;

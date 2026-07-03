@@ -9,7 +9,7 @@
 #define MAX_CLIENT 4
 #define PORT 7777
 #define TIMEOUT_SEC 5
-#define TICK_RATE 60
+#define TICK_RATE 20 
 #define TICK_US (1000000 / TICK_RATE)
 
 typedef struct {
@@ -21,5 +21,6 @@ typedef struct {
 
 int net_init(void);
 void net_run(int sock, GameState *gs);
+void net_broadcast_snapshot(int sock, GameState *gs);
 
 #endif

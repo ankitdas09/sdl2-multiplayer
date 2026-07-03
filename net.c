@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include "net.h"
@@ -69,6 +70,37 @@ int find_or_register_client(struct sockaddr_in *addr, GameState *gs){
   return -1;
 }
 
+void net_broadcast_snapshot(int sock, GameState *gs){
+  ServerSnapshot snapshot = {0};
+
+  snapshot.type = PACKET_SNAPSHOT;
+  snapshot.tick = gs->tick;
+  
+  for (int i = 0; i < MAX_PLAYERS; i++) {
+    snapshot.players[i].is_alive = gs->players[i].is_alive;
+    snapshot.players[i].x = gs->players[i].x;
+    snapshot.players[i].y = gs->players[i].y;
+  }
+ 
+  for (int i = 0; i < MAX_CRATES; i++) {
+    snapshot.crates[i].is_alive = gs->crates[i].is_alive;
+    snapshot.crates[i].x = gs->crates[i].x;
+    snapshot.crates[i].y = gs->crates[i].y;
+  }
+ 
+  for (int i = 0; i < MAX_BOMBS; i++) {
+    snapshot.bombs[i].is_alive = gs->bombs[i].is_alive;
+    snapshot.bombs[i].x = gs->bombs[i].x;
+    snapshot.bombs[i].y = gs->bombs[i].y;
+    snapshot.bombs[i].time_to_detonate = gs->bombs[i].time_to_detonate;
+  }
+
+  for(int i = 0; i < MAX_CLIENT; i++){
+    if(!clients[i].is_active) continue;
+    sendto(sock, &snapshot, sizeof(snapshot), 0, (struct sockaddr *)&clients[i].addr, sizeof(clients[i].addr));
+  }
+}
+
 void net_run(int sock, GameState *gs){ 
   struct sockaddr_in client;
   socklen_t client_len = sizeof(client);
@@ -96,8 +128,19 @@ void net_run(int sock, GameState *gs){
           perror("recvfrom");
           break;
         } else {
-          buffer[bytes] = '\0';
-          printf("Message: %s\n", buffer);
+          int slot = find_or_register_client(&client, gs); 
+          if(slot < 0){
+            printf("server full\n");
+            continue;
+          }
+          clients[slot].last_seen = time(NULL);
+          ClientInput client_input;
+          if((size_t)bytes >= sizeof(ClientInput)){
+            memcpy(&client_input, buffer, sizeof(ClientInput));
+            if(client_input.type == PACKET_INPUT){
+              game_process_input(gs, (uint8_t)slot, &client_input);
+            }
+          }
         }
       }
     }
@@ -108,6 +151,7 @@ void net_run(int sock, GameState *gs){
       printf("Tick %u\n", tick);
       next_tick_time += TICK_US;
       game_tick(gs) ;
+      net_broadcast_snapshot(sock, gs);
       tick++;
     }
   }

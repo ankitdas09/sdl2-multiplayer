@@ -5,6 +5,7 @@
 #define GAME_PROTOCOL
 #define PACKET_INPUT    0x01
 #define PACKET_SNAPSHOT 0x02
+#define PACKET_WELCOME  0x03
 #define BTN_PLACE_BOMB  (1 << 0)
 #define BTN_KICK_CRATE  (1 << 1)
 #define BTN_TAUNT       (1 << 2)
@@ -20,6 +21,7 @@ typedef struct __attribute__((packed)) {
 typedef struct __attribute__((packed)) {
   float x, y;
   bool is_alive;
+  uint8_t health;
 } ServerPlayer;
 
 typedef struct __attribute__((packed)) {
@@ -32,6 +34,14 @@ typedef struct __attribute__((packed)) {
   float x, y;
   bool is_alive;
 } ServerCrate;
+
+typedef struct __attribute__((packed)) {
+  uint8_t type;
+  uint32_t current_server_tick;
+  uint8_t player_id;
+  float    x, y;
+  uint8_t  health;
+} ServerWelcomePacket;
 
 #include "game.h"
 

@@ -52,12 +52,14 @@ long long now_us(){
   return ts.tv_sec * 1000000LL + ts.tv_nsec / 1000;
 }
 
-int find_or_register_client(struct sockaddr_in *addr, GameState *gs){
+int find_or_register_client(struct sockaddr_in *addr, GameState *gs, bool *is_new){
   for(int i = 0; i < MAX_PLAYERS; i++){
     if(clients[i].addr.sin_addr.s_addr == addr->sin_addr.s_addr && clients[i].addr.sin_port == addr->sin_port){
+      *is_new = false;
       return i;
     }
     if(!clients[i].is_active){
+      *is_new = true;
       clients[i].addr = *addr;
       clients[i].is_active = true;
       clients[i].id = i;
@@ -80,6 +82,7 @@ void net_broadcast_snapshot(int sock, GameState *gs){
     snapshot.players[i].is_alive = gs->players[i].is_alive;
     snapshot.players[i].x = gs->players[i].x;
     snapshot.players[i].y = gs->players[i].y;
+    snapshot.players[i].health = gs->players[i].health;
   }
  
   for (int i = 0; i < MAX_CRATES; i++) {
@@ -99,6 +102,18 @@ void net_broadcast_snapshot(int sock, GameState *gs){
     if(!clients[i].is_active) continue;
     sendto(sock, &snapshot, sizeof(snapshot), 0, (struct sockaddr *)&clients[i].addr, sizeof(clients[i].addr));
   }
+}
+
+void net_send_welcome(int sock, int player_id, struct sockaddr_in *addr, GameState *gs) {
+  ServerWelcomePacket welcome_packet = {0};
+  welcome_packet.player_id = player_id;
+  welcome_packet.health = MAX_PLAYER_HEALTH;
+  welcome_packet.current_server_tick = gs->tick;
+  welcome_packet.type = PACKET_WELCOME;
+  welcome_packet.x = gs->players[player_id].x;
+  welcome_packet.y = gs->players[player_id].y;
+
+  sendto(sock, &welcome_packet, sizeof(welcome_packet), 0, (struct sockaddr *)addr, sizeof(*addr)); 
 }
 
 void net_run(int sock, GameState *gs){ 
@@ -128,10 +143,14 @@ void net_run(int sock, GameState *gs){
           perror("recvfrom");
           break;
         } else {
-          int slot = find_or_register_client(&client, gs); 
+          bool is_new = false;
+          int slot = find_or_register_client(&client, gs, &is_new); 
           if(slot < 0){
             printf("server full\n");
             continue;
+          }
+          if(is_new) {
+
           }
           clients[slot].last_seen = time(NULL);
           ClientInput client_input;

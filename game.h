@@ -11,7 +11,7 @@
 #define MAP_W 50
 #define MAX_PLAYER_HEALTH 100
 #define CRATE_MASS_KG 5
-
+#define MAX_BOMBS_HELD 10
 
 typedef struct {
   uint8_t id;

@@ -51,6 +51,7 @@ void game_player_join(GameState *gs, uint8_t player_id){
   if(player_id >= MAX_PLAYERS) return;
   gs->players[player_id].health = MAX_PLAYER_HEALTH;
   gs->players[player_id].is_alive = true;
+  gs->players[player_id].bomb_held = MAX_BOMBS_HELD;
 }
 
 

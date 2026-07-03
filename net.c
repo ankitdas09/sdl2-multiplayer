@@ -7,6 +7,8 @@
 #include <sys/select.h>
 #include <time.h>
 
+static NetClient clients[MAX_PLAYERS];
+
 int net_init() {
   int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
   if(sockfd < 0) {
@@ -38,6 +40,8 @@ int net_init() {
     return -1;
   }
 
+  memset(clients, 0, sizeof(clients));
+
   return sockfd;
 }
 
@@ -45,6 +49,24 @@ long long now_us(){
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
   return ts.tv_sec * 1000000LL + ts.tv_nsec / 1000;
+}
+
+int find_or_register_client(struct sockaddr_in *addr, GameState *gs){
+  for(int i = 0; i < MAX_PLAYERS; i++){
+    if(clients[i].addr.sin_addr.s_addr == addr->sin_addr.s_addr && clients[i].addr.sin_port == addr->sin_port){
+      return i;
+    }
+    if(!clients[i].is_active){
+      clients[i].addr = *addr;
+      clients[i].is_active = true;
+      clients[i].id = i;
+      clients[i].last_seen = time(NULL);
+      game_player_join(gs, i);
+      return i;
+    }
+  }
+
+  return -1;
 }
 
 void net_run(int sock, GameState *gs){ 
@@ -85,7 +107,7 @@ void net_run(int sock, GameState *gs){
     if(_now_us >= next_tick_time){
       printf("Tick %u\n", tick);
       next_tick_time += TICK_US;
-      game_tick(gs);
+      game_tick(gs) ;
       tick++;
     }
   }

@@ -150,7 +150,7 @@ void net_run(int sock, GameState *gs){
             continue;
           }
           if(is_new) {
-
+            net_send_welcome(sock, slot, &client, gs);
           }
           clients[slot].last_seen = time(NULL);
           ClientInput client_input;
